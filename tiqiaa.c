@@ -410,19 +410,17 @@ static int tiq_send(struct ir_remote* remote, struct ir_ncode* code) {
 		log_debug("file.c: Cannot make send_buffer_put");
 		return 0;
 	}
-	for (int i = 0;; ) {
-        buf_size = write_pulse(buf, buf_size, 1, send_buffer_data()[i++]);
+    int sendBufLength = send_buffer_length();
+    int is_on = 1;
+    const lirc_t *sendBufData = send_buffer_data();
+
+    for (int i = 0; i < sendBufLength; i++, is_on = 1 - is_on) {
+        buf_size = write_pulse(buf, buf_size, is_on, sendBufData[i]);
         if (buf_size < 0) {
             return 0;
         }
-		if (i >= send_buffer_length())
-			break;
-		buf_size = write_pulse(buf, buf_size, 0, send_buffer_data()[i++]);
-        if (buf_size < 0) {
-            return 0;
-        }
-	}
-	buf_size = write_pulse(buf, buf_size, 0, remote->min_remaining_gap);
+    }
+    buf_size = write_pulse(buf, buf_size, 0, remote->min_remaining_gap);
     if (buf_size < 0) {
         return 0;
     }
