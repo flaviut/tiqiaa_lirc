@@ -576,12 +576,11 @@ static uint8_t get_cmd_id(void) {
 static int send_report_2(void *data, int size) {
 	uint8_t frag_buf[61];
 	tiq_report2header *report_hdr = (tiq_report2header *) frag_buf;
-	int rd_ptr;
+	int rd_ptr = 0;
 	int frag_idx;
 	int frag_size;
 	uint32_t usb_tx_size;
 
-	rd_ptr = 0;
 	if ((size <= 0) || (size > max_usb_packet_size)) {
         return 0;
     }
