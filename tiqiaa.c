@@ -404,46 +404,46 @@ static int tiq_send(struct ir_remote* remote, struct ir_ncode* code) {
     log_trace("tiqiaa.c: sending, code: %s", code -> name);
     
 	uint8_t buf[128];
-	int buf_size = 0;
-    
+    int write_pos = 0;
+
     if (!send_buffer_put(remote, code)) {
-		log_debug("file.c: Cannot make send_buffer_put");
-		return 0;
-	}
+        log_debug("file.c: Cannot make send_buffer_put");
+        return 0;
+    }
     int sendBufLength = send_buffer_length();
     int is_on = 1;
     const lirc_t *sendBufData = send_buffer_data();
 
     for (int i = 0; i < sendBufLength; i++, is_on = 1 - is_on) {
-        buf_size = write_pulse(buf, buf_size, is_on, sendBufData[i]);
-        if (buf_size < 0) {
+        write_pos = write_pulse(buf, write_pos, is_on, sendBufData[i]);
+        if (write_pos < 0) {
             return 0;
         }
     }
-    buf_size = write_pulse(buf, buf_size, 0, remote->min_remaining_gap);
-    if (buf_size < 0) {
+    write_pos = write_pulse(buf, write_pos, 0, remote->min_remaining_gap);
+    if (write_pos < 0) {
         return 0;
     }
-    return send_ir(38000, buf, buf_size);
+    return send_ir(38000, buf, write_pos);
 }
 
-static int write_pulse(uint8_t *buf, int buf_size, int is_on, lirc_t duration) {
+static int write_pulse(uint8_t *buf, int write_pos, int is_on, lirc_t duration) {
     int pulse_length = duration/16;
     while (pulse_length > 127) {
-        if (buf_size > 127) {
+        if (write_pos > 127) {
             log_error("Buffer overflow");
             return -1;
         }
-        buf[buf_size] = (128 * is_on) + 127;
+        buf[write_pos] = (128 * is_on) + 127;
         pulse_length -= 127;
-        buf_size++;
+        write_pos++;
     }
-    if (buf_size > 127) {
+    if (write_pos > 127) {
         log_error("Buffer overflow");
         return -1;
     }
-    buf[buf_size] = (128 * is_on) + pulse_length;
-    return ++buf_size;
+    buf[write_pos] = (128 * is_on) + pulse_length;
+    return ++write_pos;
 }
 
 static int send_ir(int freq, void *buffer, int buf_size) {
