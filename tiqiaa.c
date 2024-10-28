@@ -429,21 +429,19 @@ static int tiq_send(struct ir_remote* remote, struct ir_ncode* code) {
 
 static int write_pulse(uint8_t *buf, int write_pos, int is_on, lirc_t duration) {
     int pulse_length = duration/16;
-    while (pulse_length > 127) {
-        if (write_pos > 127) {
-            log_error("Buffer overflow");
-            return -1;
-        }
-        buf[write_pos] = (128 * is_on) + 127;
-        pulse_length -= 127;
-        write_pos++;
-    }
-    if (write_pos > 127) {
-        log_error("Buffer overflow");
-        return -1;
-    }
-    buf[write_pos] = (128 * is_on) + pulse_length;
-    return ++write_pos;
+	int generatedDataLength = pulse_length/128; if(pulse_length%128>0) generatedDataLength++;
+	if(write_pos + generatedDataLength > 127) {
+		log_error("Buffer overflow");
+		return -1;
+	}
+
+	int pulseByte = (128 * is_on) + 127;
+	int numCopies = pulse_length/128;
+	memset(buf + write_pos, pulseByte, numCopies);
+	write_pos += numCopies;
+	int remainingPulses = pulse_length%128;
+    if(remainingPulses>0) buf[write_pos++] = (128 * is_on) + remainingPulses;
+    return write_pos;
 }
 
 static int send_ir(int freq, void *buffer, int buf_size) {
