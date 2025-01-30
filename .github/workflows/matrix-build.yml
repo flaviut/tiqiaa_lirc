@@ -1,0 +1,37 @@
+name: Package Build Matrix
+
+on:
+  push:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        distro: 
+          - debian:bookworm
+          - debian:bullseye
+          - ubuntu:24.04
+          - ubuntu:22.04
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build package for ${{ matrix.distro }}
+      run: DISTRO="${{ matrix.distro }}" ./build.sh
+
+    - name: Sanitize artifact name
+      run: echo "ARTIFACT_NAME=packages-$(echo ${{ matrix.distro }} | tr ':' '-')" >> $GITHUB_ENV
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: packages/

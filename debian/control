@@ -1,0 +1,12 @@
+Source: lirc-plugin-tiqlibusb
+Section: utils
+Priority: optional
+Build-Depends: debhelper (>= 10), liblirc-dev, libusb-1.0-0-dev, pkg-config
+Standards-Version: 4.5.0
+Maintainer: Your Name <your.email@example.com>
+
+Package: lirc-plugin-tiqlibusb
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, lirc, libusb-1.0-0
+Description: LIRC plugin for TiQLIBUSB devices
+ This package provides a LIRC plugin for controlling TiQLIBUSB devices.
